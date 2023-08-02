@@ -2,11 +2,13 @@ import requests
 from bs4 import BeautifulSoup
 from time import sleep
 from pymongo import MongoClient
+import datetime
+import pytz
 
 base_url="https://books.toscrape.com/catalogue/"
 page_url="page-1.html"
 
-client=MongoClient(" ")
+client=MongoClient(" ") #mongodb connection string
 db=client.scrape
 collection=db.product
 
@@ -73,7 +75,11 @@ while page_url:
                                 filename=f"books_img/{title}.jpg"
                                 with open(filename,"wb") as file:
                                         file.write(image)
-
+                                        
+                        epoch_time=datetime.datetime.utcnow()
+                        ist_timezone = pytz.timezone('Asia/Kolkata')
+                        current_ist_time = epoch_time.astimezone(ist_timezone)
+                        iso_time=current_ist_time.strftime('%Y-%m-%d %H:%M:%S.%fZ')
 
                         data={"product_name":title,
                         "product_price":price,
@@ -92,8 +98,9 @@ while page_url:
                                 "No.of.Reviews":reviews
                         },
                         "category":category_list,
-                        "image_path_local":filename
-                                
+                        "image_path_local":filename,
+                        "scrapped_timestamp_epoch":epoch_time,
+                        "Scrapped_timestamp_iso":iso_time            
                         }
                         collection.insert_one(data)
 
